@@ -61,17 +61,10 @@ end
 
 local function current_session()
   namespace=vim.env.namespace or "Not session loaded"
-  print("Session load : ",namespace)
+  print("Session loaded :",namespace)
 end
 
-local function load_session(selected)
-  namespace=clean_str(selected)
-  vim.env.namespace=namespace
-  local session_namespace=sessions_path..namespace
-  api.nvim_command("source "..session_namespace)
-end
-
-local function getsessions()
+local function get_sessions()
   local files = api.nvim_call_function('readdir',{sessions_path})
   local sessions={}
   for k,file in pairs(files) do
@@ -88,13 +81,12 @@ local function center(str)
   return string.rep(' ', shift) .. str
 end
 
-local function show_sessions_folder()
+local function create_sessions_window()
   buf = api.nvim_create_buf(false, true)
   local border_buf = api.nvim_create_buf(false, true)
 
   api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
   api.nvim_buf_set_option(buf, 'filetype', 'whid')
-  -- api.nvim_command("highlight CustomFloatingWindow ctermbg=234 guibg=#1d1d1d ctermfg=10 guifg=white")
 
   local width = api.nvim_get_option("columns")
   local height = api.nvim_get_option("lines")
@@ -131,25 +123,25 @@ local function show_sessions_folder()
   api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
 
   local border_win = api.nvim_open_win(border_buf, true, border_opts)
-  api.nvim_win_set_option(border_win,'winhl','Normal:CustomFloatingWindow')
+  api.nvim_win_set_option(border_win,'winhl','Normal:SessionsWindow')
 
   win = api.nvim_open_win(buf, true, opts)
   api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! "'..border_buf)
 
   api.nvim_win_set_option(win, 'cursorline', true) -- it highlight line with the cursor on it
   api.nvim_win_set_option(win,'foldmethod','manual')
-  api.nvim_win_set_option(win,'winhl','Normal:CustomFloatingWindow')
+  api.nvim_win_set_option(win,'winhl','Normal:SessionsWindow')
 
   -- we can add title already here, because first line will never change
   api.nvim_buf_set_lines(buf, 0, -1, false, { center('Sessions founded'), '', ''})
 end
 
-local function update_view(direction)
+local function update_sessions_window(direction)
   api.nvim_buf_set_option(buf, 'modifiable', true)
   position = position + direction
   if position < 0 then position = 0 end
 
-  local result=getsessions()
+  local result=get_sessions()
   if #result == 0 then table.insert(result, '') end -- add  an empty line to preserve layout if there is no results
   for k,v in pairs(result) do
     result[k] = '  '..result[k]
@@ -161,15 +153,18 @@ local function update_view(direction)
   api.nvim_buf_set_option(buf, 'modifiable', false)
 end
 
-local function close_window()
+local function close_sessions_window()
   api.nvim_win_close(win, true)
 end
 
-local function open_file()
-  local str = api.nvim_get_current_line()
-  close_window()
+local function load_session()
+  local selected= api.nvim_get_current_line()
+  close_sessions_window()
   api.nvim_command("bwipeout")
-  load_session(str)
+  namespace=clean_str(selected)
+  vim.env.namespace=namespace
+  local session_namespace=sessions_path..namespace
+  api.nvim_command("source "..session_namespace)
 end
 
 local function move_cursor()
@@ -179,18 +174,18 @@ end
 
 local function set_mappings()
   local mappings = {
-    ['['] = 'update_view(-1)',
-    [']'] = 'update_view(1)',
-    ['<cr>'] = 'open_file()',
-    h = 'update_view(-1)',
-    l = 'update_view(1)',
-    q = 'close_window()',
-    ['<ESC>'] = 'close_window()',
+    ['['] = 'update_sessions_window(-1)',
+    [']'] = 'update_sessions_window(1)',
+    ['<cr>'] = 'load_session()',
+    h = 'update_sessions_window(-1)',
+    l = 'update_sessions_window(1)',
+    q = 'close_sessions_window()',
+    ['<ESC>'] = 'close_sessions_window()',
     k = 'move_cursor()'
   }
 
   for k,v in pairs(mappings) do
-    api.nvim_buf_set_keymap(buf, 'n', k, ':lua require"load-nvim-sessions".'..v..'<cr>', {
+    api.nvim_buf_set_keymap(buf, 'n', k, ':lua require"manage-nvim-sessions".'..v..'<cr>', {
         nowait = true, noremap = true, silent = true
       })
   end
@@ -204,24 +199,24 @@ local function set_mappings()
   end
 end
 
-local function load_nvim_sessions()
+local function manage_nvim_sessions()
   if check_sessions_directory() then
     position = 0
-    show_sessions_folder()
+    create_sessions_window()
     set_mappings()
-    update_view(0)
+    update_sessions_window(0)
     api.nvim_win_set_cursor(win, {4, 0})
   end
 end
 
 return {
-  lns = load_nvim_sessions,
+  mns = manage_nvim_sessions,
   ms=make_session,
   us=update_session,
   ds=delete_session,
   cs=current_session,
-  update_view = update_view,
-  open_file = open_file,
+  update_sessions_window= update_sessions_window,
+  load_session = load_session,
   move_cursor = move_cursor,
-  close_window = close_window
+  close_sessions_window = close_sessions_window
 }
