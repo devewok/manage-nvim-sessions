@@ -118,13 +118,13 @@ local function create_sessions_window(opt)
     col = col
   }
 
-  local border_lines = { '╔' .. string.rep('═', win_width) .. '╗' }
-  -- local middle_line = ' ' .. string.rep(' ', win_width) .. ' '
-  local middle_line = '║' .. string.rep(' ', win_width) .. '║'
+-- ╭", "─", "╮", "│", "╯", "─", "╰", "│"
+  local border_lines = { '╭' .. string.rep('─', win_width) .. '╮' }
+  local middle_line = '│' .. string.rep(' ', win_width) .. '│'
   for i=1, win_height do
     table.insert(border_lines, middle_line)
   end
-  table.insert(border_lines, '╚' .. string.rep('═', win_width) .. '╝')
+  table.insert(border_lines, '╰' .. string.rep('─', win_width) .. '╯')
   api.nvim_buf_set_lines(border_buf, 0, -1, false, border_lines)
 
   local border_win = api.nvim_open_win(border_buf, true, border_opts)
