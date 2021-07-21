@@ -82,33 +82,6 @@ local function center(str)
   return string.rep(' ', shift) .. str
 end
 
-local function load_sessions()
-  buf = api.nvim_create_buf(false, true)
-  local width = api.nvim_get_option("columns")
-  local height = api.nvim_get_option("lines")
-
-  local win_height = math.ceil(height)
-  local win_width = math.ceil(width)
-  local row = math.ceil((height - win_height) / 2 - 1)
-  local col = math.ceil((width - win_width) / 2)
-
-  local opts = {
-    style = "minimal",
-    relative = "editor",
-    width = win_width,
-    height = win_height,
-    row = row,
-    col = col
-  }
-  win = api.nvim_open_win(buf, true, opts)
-  api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
-  api.nvim_buf_set_option(buf, 'filetype', 'whid')
-  api.nvim_win_set_option(win, 'cursorline', true) -- it highlight line with the cursor on it
-  api.nvim_win_set_option(win,'foldmethod','manual')
-  -- api.nvim_win_set_option(win,'winhl','Normal:SessionsWindow')
-  api.nvim_buf_set_lines(buf, 0, -1, false, { center('Sessions founded'), '', ''})
-end
-
 local function create_sessions_window(opt)
   buf = api.nvim_create_buf(false, true)
   local border_buf = api.nvim_create_buf(false, true)
@@ -146,8 +119,8 @@ local function create_sessions_window(opt)
   }
 
   local border_lines = { '╔' .. string.rep('═', win_width) .. '╗' }
-  local middle_line = ' ' .. string.rep(' ', win_width) .. ' '
-  -- local middle_line = '║' .. string.rep(' ', win_width) .. '║'
+  -- local middle_line = ' ' .. string.rep(' ', win_width) .. ' '
+  local middle_line = '║' .. string.rep(' ', win_width) .. '║'
   for i=1, win_height do
     table.insert(border_lines, middle_line)
   end
@@ -192,7 +165,7 @@ end
 local function load_session()
   local selected=api.nvim_win_get_cursor(win)[1]-3
   close_sessions_window()
-  api.nvim_command("bwipeout")
+  api.nvim_command("bufdo bwipeout")
   namespace=sessions[selected]
   vim.env.namespace=namespace
   local session_namespace=sessions_path..namespace
@@ -235,11 +208,7 @@ end
 local function manage_nvim_sessions(opt)
   if check_sessions_directory() then
     position = 0
-    -- if opt then
-      -- load_sessions()
-    -- else
-    -- end
-      create_sessions_window(opt)
+    create_sessions_window(opt)
     set_mappings()
     update_sessions_window(0)
     api.nvim_win_set_cursor(win, {4, 0})
