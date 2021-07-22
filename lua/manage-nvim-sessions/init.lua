@@ -34,9 +34,12 @@ local function make_session()
     if vim.env.namespace == nil then
       namespace=api.nvim_call_function('input',{"Session name: "})
       namespace=clean_str(namespace)
+      if not string.match(namespace,".vim") then
+        namespace=namespace..".vim"
+      end
       vim.env.namespace=namespace
       local session_namespace=sessions_path..namespace
-      api.nvim_command("mksession "..session_namespace) 
+      api.nvim_command("mksession "..session_namespace)
       print("Session created :",namespace)
     else
       update_session()
@@ -67,7 +70,7 @@ end
 
 local function get_sessions()
   local files = api.nvim_call_function('readdir',{sessions_path})
-  local sessions={}
+  sessions={}
   for k,file in pairs(files) do
     if string.match(file,".vim") then
       table.insert(sessions,file)

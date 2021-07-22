@@ -14,7 +14,6 @@ command! DeleteSession lua require("manage-nvim-sessions").ds()
 command! CurrentSession lua require("manage-nvim-sessions").cs()
 
 let g:enable_managenvimsessions = 1
-" if exists('g:enable_mns_on_start') && g:enable_mns_on_start
 if !argc()
 	au VimEnter * nested :ManageNvimSessions(0)
 endif
