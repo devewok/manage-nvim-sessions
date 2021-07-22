@@ -96,7 +96,7 @@ local function create_sessions_window(opt)
     hs,ws=0.5,0.4
   end
   local win_height = math.ceil(height * hs - 4)
-  local win_width = math.ceil(width * ws -2)
+  local win_width = math.ceil(width * ws -3)
   local row = math.ceil((height - win_height) / 2 - 1)
   local col = math.ceil((width - win_width) / 2)
 
