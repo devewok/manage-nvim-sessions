@@ -78,11 +78,11 @@ end
 
 local function center(str)
   local width = api.nvim_win_get_width(0)
-  local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)
-  return string.rep(' ', shift) .. str
+  local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)-1
+  return string.rep('─', shift) .. str .. string.rep('─', shift)
 end
 
-local function create_sessions_window(opt)
+local function create_sessions_window()
   buf = api.nvim_create_buf(false, true)
   local border_buf = api.nvim_create_buf(false, true)
 
@@ -91,12 +91,9 @@ local function create_sessions_window(opt)
 
   local width = api.nvim_get_option("columns")
   local height = api.nvim_get_option("lines")
-  local hs,ws=1,1
-  if not opt then
-    hs,ws=0.5,0.4
-  end
+  local hs,ws=0.5,0.4
   local win_height = math.ceil(height * hs - 4)
-  local win_width = math.ceil(width * ws -3)
+  local win_width = math.ceil(width * ws)
   local row = math.ceil((height - win_height) / 2 - 1)
   local col = math.ceil((width - win_width) / 2)
 
@@ -118,7 +115,6 @@ local function create_sessions_window(opt)
     col = col
   }
 
--- ╭", "─", "╮", "│", "╯", "─", "╰", "│"
   local border_lines = { '╭' .. string.rep('─', win_width) .. '╮' }
   local middle_line = '│' .. string.rep(' ', win_width) .. '│'
   for i=1, win_height do
@@ -150,7 +146,7 @@ local function update_sessions_window(direction)
   local results={}
   if #sessions == 0 then table.insert(sessions,'') end -- add  an empty line to preserve layout if there is no results
   for k,session in pairs(sessions) do
-    results[k] = '  ['..k..'] '..session
+    results[k] = ' ['..k..']  '..session
   end
 
   api.nvim_buf_set_lines(buf, 1, 2, false, {center('Fuck ready')})
@@ -165,7 +161,7 @@ end
 local function load_session()
   local selected=api.nvim_win_get_cursor(win)[1]-3
   close_sessions_window()
-  api.nvim_command("bufdo bwipeout")
+  api.nvim_command("bufdo! bwipeout!")
   namespace=sessions[selected]
   vim.env.namespace=namespace
   local session_namespace=sessions_path..namespace
@@ -205,10 +201,10 @@ local function set_mappings()
   end
 end
 
-local function manage_nvim_sessions(opt)
+local function manage_nvim_sessions()
   if check_sessions_directory() then
     position = 0
-    create_sessions_window(opt)
+    create_sessions_window()
     set_mappings()
     update_sessions_window(0)
     api.nvim_win_set_cursor(win, {4, 0})
