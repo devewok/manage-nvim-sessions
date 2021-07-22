@@ -81,7 +81,7 @@ end
 
 local function center(str)
   local width = api.nvim_win_get_width(0)
-  local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)-1
+  local shift = math.floor(width / 2) - math.floor(string.len(str) / 2)
   return string.rep('─', shift) .. str .. string.rep('─', shift)
 end
 
@@ -133,7 +133,6 @@ local function create_sessions_window()
   api.nvim_command('au BufWipeout <buffer> exe "silent bwipeout! "'..border_buf)
 
   api.nvim_win_set_option(win, 'cursorline', true) -- it highlight line with the cursor on it
-  api.nvim_win_set_option(win,'foldmethod','manual')
   api.nvim_win_set_option(win,'winhl','Normal:SessionsWindow')
 
   -- we can add title already here, because first line will never change
@@ -149,7 +148,7 @@ local function update_sessions_window(direction)
   local results={}
   if #sessions == 0 then table.insert(sessions,'') end -- add  an empty line to preserve layout if there is no results
   for k,session in pairs(sessions) do
-    results[k] = ' ['..k..']  '..session
+    results[k] = '['..k..']  '..session
   end
 
   api.nvim_buf_set_lines(buf, 1, 2, false, {center('Fuck ready')})
